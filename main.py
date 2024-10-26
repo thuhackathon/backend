@@ -30,9 +30,22 @@ def load_chat_history():
     if os.path.exists('chat_history.json'):
         with open('chat_history.json', 'r') as file:
             chat_history = json.load(file)
-    else:
-        chat_history = []
-    return chat_history
+            # Check if chat_history is not empty and is a list
+            if chat_history and isinstance(chat_history, list):
+                # Check if the first element is a string (old format)
+                if isinstance(chat_history[0], str):
+                    # Convert old format to new format
+                    structured_history = []
+                    for i, msg in enumerate(chat_history):
+                        role = 'user' if i % 2 == 0 else 'assistant'
+                        structured_history.append({
+                            'role': role,
+                            'content': msg
+                        })
+                    return structured_history
+                return chat_history  # Return as-is if already in correct format
+    # Return empty list if file doesn't exist or chat_history is empty
+    return []
 
 # save chat history, create a file if not exists
 def save_chat_history(chat_history):
@@ -180,20 +193,22 @@ async def chat_internal(user_prompt, system_prompt, image_url, chat_history):
         # Prepare messages array starting with system prompt
         messages = [{'role': 'system', 'content': system_prompt}]
         
-        # Add chat history - Fix the message formatting
-        if chat_history:
-            for msg in chat_history:
-                # Check if msg is already a dictionary
-                if isinstance(msg, dict) and 'role' in msg and 'content' in msg:
-                    messages.append(msg)
-                # If msg is a string, assume it's content and determine role
-                elif isinstance(msg, str):
-                    # You might want to adjust this logic based on your needs
-                    messages.append({
-                        'role': 'assistant',
-                        'content': msg
-                    })
-
+        # Add chat history
+        for msg in chat_history:
+            # Check if msg is already a dictionary
+            if isinstance(msg, dict):
+                messages.append({
+                    'role': msg['role'],
+                    'content': msg['content']
+                })
+            # If msg is a string, assume it's alternating user/assistant messages
+            else:
+                role = 'user' if len(messages) % 2 == 1 else 'assistant'
+                messages.append({
+                    'role': role,
+                    'content': msg
+                })
+        
         # Add current user message with image
         messages.append({'role': 'user', 'content': user_content})
         

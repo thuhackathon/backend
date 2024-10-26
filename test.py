@@ -11,8 +11,20 @@ import signal
 import sys
 import asyncio
 from capture_and_save_photo import capture_and_save_photo
+import logging
 
 from main import active_chat, chat_internal, load_chat_history, save_chat_history
+
+# Add logging configuration near the top of the file after imports
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('remy.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 dotenv.load_dotenv()
@@ -33,9 +45,9 @@ resume_repeating_task.set()  # Initially, we want the task to run
 # Function for the repeating task
 async def repeating_task():
     while resume_repeating_task.is_set():
-        print("active chat is running...")
+        logger.info("Active chat is running...")
         res = await active_chat(image_url=capture_and_save_photo()["file_path"])
-        print(res)
+        logger.info(f"Active chat response: {res}")
         await asyncio.sleep(2)  # Replace time.sleep with asyncio.sleep
 
 # Create a function to run the async task
@@ -48,13 +60,13 @@ repeating_thread = threading.Thread(target=run_repeating_task, daemon=True)
 # Function to recognize speech after wake word detection
 async def recognize_speech():
     with sr.Microphone() as source:
-        print("Listening for command...")
+        logger.info("Listening for command...")
         try:
             # Adjust the timeout and phrase_time_limit to be more lenient
             recognizer.adjust_for_ambient_noise(source, duration=0.5)  # Add ambient noise adjustment
             audio = recognizer.listen(source, phrase_time_limit=5, timeout=5)  # Increased from 2,1 to 5,5
             user_voice_msg = recognizer.recognize_google(audio, language="zh-CN")
-            print(f"Recognized Speech: {user_voice_msg}")
+            logger.info(f"Recognized Speech: {user_voice_msg}")
             image_url = capture_and_save_photo()["file_path"]
 
             with open('prompts.yaml', 'r') as file:
@@ -66,15 +78,15 @@ async def recognize_speech():
                 image_url=image_url,
                 chat_history=load_chat_history()
             )
-            print(res)
+            logger.info(f"Chat response: {res}")
             save_chat_history(res)
             
         except sr.WaitTimeoutError:
-            print("No speech detected within timeout period")
+            logger.warning("No speech detected within timeout period")
         except sr.UnknownValueError:
-            print("Could not understand the audio")
+            logger.warning("Could not understand the audio")
         except Exception as e:
-            print(f"Error during recognition: {e}")
+            logger.error(f"Error during recognition: {e}", exc_info=True)
 
 # Update the function to run the async recognition
 def run_recognition():
@@ -84,7 +96,7 @@ def run_recognition():
 def on_wake_word_detected():
     global resume_repeating_task
     global repeating_thread
-    print("Hey Remy detected! Starting speech recognition...")
+    logger.info("Hey Remy detected! Starting speech recognition...")
 
     # Pause repeating task
     resume_repeating_task.clear()
@@ -102,7 +114,7 @@ def on_wake_word_detected():
 
 # Function to listen for hot word
 def listen_for_hotword():
-    print("Listening for 'Hey Remy' hot word...")
+    logger.info("Listening for 'Hey Remy' hot word...")
     
     porcupine = init_porcupine()
     try:
@@ -120,7 +132,7 @@ def listen_for_hotword():
 
             # Check if hot word is detected
             if porcupine.process(pcm_unpacked) >= 0:
-                print("Hot word detected!")
+                logger.info("Hot word detected!")
                 
                 audio_stream.stop_stream()
                 audio_stream.close()
@@ -135,10 +147,10 @@ def listen_for_hotword():
                     frames_per_buffer=porcupine.frame_length
                 )
                 
-                print("Resuming hot word detection...")
+                logger.info("Resuming hot word detection...")
 
     except KeyboardInterrupt:
-        print("Exiting gracefully...")
+        logger.info("Exiting gracefully...")
         
     finally:
         porcupine.delete()
@@ -147,7 +159,7 @@ def listen_for_hotword():
 def main():
     # Set up a handler for KeyboardInterrupt (Ctrl+C)
     def signal_handler(sig, frame):
-        print("\nExiting gracefully...")
+        logger.info("\nExiting gracefully...")
         resume_repeating_task.clear()  # Stop the repeating task
         sys.exit(0)
 
@@ -162,7 +174,7 @@ def main():
         listen_for_hotword()
 
     except KeyboardInterrupt:
-        print("Exiting gracefully...")
+        logger.info("Exiting gracefully...")
 
 if __name__ == "__main__":
     main()
