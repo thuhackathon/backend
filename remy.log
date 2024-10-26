@@ -1,0 +1,151 @@
+2024-10-27 01:00:29,492 - INFO - Listening for 'Hey Remy' hot word...
+2024-10-27 01:00:29,492 - INFO - Active chat is running...
+2024-10-27 01:00:37,038 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-10-27 01:00:37,054 - INFO - Active chat response: {'response': '{\n  "talk_needed": False,\n  "talk_content": ""\n}'}
+2024-10-27 01:00:39,056 - INFO - Active chat is running...
+2024-10-27 01:00:45,269 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-10-27 01:00:45,273 - INFO - Active chat response: {'response': '{\n  "talk_needed": False,\n  "talk_content": ""\n}'}
+2024-10-27 01:00:47,274 - INFO - Active chat is running...
+2024-10-27 01:00:49,379 - INFO - Hot word detected!
+2024-10-27 01:00:49,483 - INFO - Hey Remy detected! Starting speech recognition...
+2024-10-27 01:00:49,579 - INFO - Listening for command...
+2024-10-27 01:00:53,368 - ERROR - Error during recognition: recognition request failed: Bad Gateway
+Traceback (most recent call last):
+  File "/Users/ianhsiao/Documents/thu_hackathon/backend/.venv/lib/python3.12/site-packages/speech_recognition/recognizers/google.py", line 215, in obtain_transcription
+    response = urlopen(request, timeout=timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ianhsiao/miniconda3/lib/python3.12/urllib/request.py", line 215, in urlopen
+    return opener.open(url, data, timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ianhsiao/miniconda3/lib/python3.12/urllib/request.py", line 521, in open
+    response = meth(req, response)
+               ^^^^^^^^^^^^^^^^^^^
+  File "/Users/ianhsiao/miniconda3/lib/python3.12/urllib/request.py", line 630, in http_response
+    response = self.parent.error(
+               ^^^^^^^^^^^^^^^^^^
+  File "/Users/ianhsiao/miniconda3/lib/python3.12/urllib/request.py", line 559, in error
+    return self._call_chain(*args)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ianhsiao/miniconda3/lib/python3.12/urllib/request.py", line 492, in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+  File "/Users/ianhsiao/miniconda3/lib/python3.12/urllib/request.py", line 639, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 502: Bad Gateway
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/ianhsiao/Documents/thu_hackathon/backend/test.py", line 68, in recognize_speech
+    user_voice_msg = recognizer.recognize_google(audio, language="zh-CN")
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ianhsiao/Documents/thu_hackathon/backend/.venv/lib/python3.12/site-packages/speech_recognition/recognizers/google.py", line 256, in recognize_legacy
+    response_text = obtain_transcription(
+                    ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ianhsiao/Documents/thu_hackathon/backend/.venv/lib/python3.12/site-packages/speech_recognition/recognizers/google.py", line 217, in obtain_transcription
+    raise RequestError("recognition request failed: {}".format(e.reason))
+speech_recognition.exceptions.RequestError: recognition request failed: Bad Gateway
+2024-10-27 01:00:53,491 - INFO - Active chat is running...
+2024-10-27 01:00:53,574 - INFO - Resuming hot word detection...
+2024-10-27 01:00:54,073 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-10-27 01:00:54,078 - INFO - Active chat response: {'response': '{\n  "talk_needed": False,\n  "talk_content": ""\n}'}
+2024-10-27 01:00:56,079 - INFO - Active chat is running...
+2024-10-27 01:00:58,326 - INFO - 
+Exiting gracefully...
+2024-10-27 01:01:00,999 - INFO - Listening for 'Hey Remy' hot word...
+2024-10-27 01:01:00,999 - INFO - Active chat is running...
+2024-10-27 01:01:07,565 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-10-27 01:01:07,573 - INFO - Active chat response: {'response': '{\n  "talk_needed": False,\n  "talk_content": ""\n}'}
+2024-10-27 01:01:09,575 - INFO - Active chat is running...
+2024-10-27 01:01:12,086 - INFO - Hot word detected!
+2024-10-27 01:01:12,203 - INFO - Hey Remy detected! Starting speech recognition...
+2024-10-27 01:01:12,289 - INFO - Listening for command...
+2024-10-27 01:01:14,832 - WARNING - Could not understand the audio
+2024-10-27 01:01:14,938 - INFO - Active chat is running...
+2024-10-27 01:01:15,017 - INFO - Resuming hot word detection...
+2024-10-27 01:01:15,705 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-10-27 01:01:15,707 - INFO - Active chat response: {'response': '{\n  "talk_needed": False,\n  "talk_content": ""\n}'}
+2024-10-27 01:01:17,708 - INFO - Active chat is running...
+2024-10-27 01:01:21,467 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-10-27 01:01:21,470 - INFO - Active chat response: {'response': '{\n  "talk_needed": False,\n  "talk_content": ""\n}'}
+2024-10-27 01:01:23,069 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-10-27 01:01:23,073 - INFO - Active chat response: {'response': '{\n  "talk_needed": False,\n  "talk_content": ""\n}'}
+2024-10-27 01:01:23,471 - INFO - Active chat is running...
+2024-10-27 01:01:23,480 - INFO - Hot word detected!
+2024-10-27 01:01:23,593 - INFO - Hey Remy detected! Starting speech recognition...
+2024-10-27 01:01:23,676 - INFO - Listening for command...
+2024-10-27 01:01:26,674 - INFO - Recognized Speech: 要怎么煎蛋
+2024-10-27 01:01:29,603 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-10-27 01:01:29,606 - INFO - Active chat response: {'response': '{\n  "talk_needed": False,\n  "talk_content": ""\n}'}
+2024-10-27 01:01:32,673 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-10-27 01:01:32,677 - INFO - Chat response: {'response': '{\n  "talk_needed": True,\n  "talk_content": "在热锅里加油，然后打入鸡蛋，煎至边缘微脆，翻面继续煎。控制火候，确保蛋黄完全熟透或者留心黄流心！"\n}'}
+2024-10-27 01:01:32,787 - INFO - Active chat is running...
+2024-10-27 01:01:32,870 - INFO - Resuming hot word detection...
+2024-10-27 01:01:37,494 - INFO - Hot word detected!
+2024-10-27 01:01:37,607 - INFO - Hey Remy detected! Starting speech recognition...
+2024-10-27 01:01:37,692 - INFO - Listening for command...
+2024-10-27 01:01:38,963 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-10-27 01:01:38,967 - INFO - Active chat response: {'response': '{\n  "talk_needed": False,\n  "talk_content": ""\n}'}
+2024-10-27 01:01:41,137 - INFO - Recognized Speech: 下一步是什么
+2024-10-27 01:01:46,360 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-10-27 01:01:46,365 - INFO - Chat response: {'response': '{\n  "talk_needed": False,\n  "talk_content": ""\n}'}
+2024-10-27 01:01:46,481 - INFO - Active chat is running...
+2024-10-27 01:01:46,570 - INFO - Resuming hot word detection...
+2024-10-27 01:01:52,405 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-10-27 01:01:52,410 - INFO - Active chat response: {'response': '{\n  "talk_needed": False,\n  "talk_content": ""\n}'}
+2024-10-27 01:01:54,411 - INFO - Active chat is running...
+2024-10-27 01:02:00,389 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-10-27 01:02:00,390 - INFO - Active chat response: {'response': '{\n  "talk_needed": False,\n  "talk_content": ""\n}'}
+2024-10-27 01:02:02,392 - INFO - Active chat is running...
+2024-10-27 01:02:03,612 - INFO - Hot word detected!
+2024-10-27 01:02:03,726 - INFO - Hey Remy detected! Starting speech recognition...
+2024-10-27 01:02:03,807 - INFO - Listening for command...
+2024-10-27 01:02:07,579 - ERROR - Error during recognition: recognition request failed: Bad Gateway
+Traceback (most recent call last):
+  File "/Users/ianhsiao/Documents/thu_hackathon/backend/.venv/lib/python3.12/site-packages/speech_recognition/recognizers/google.py", line 215, in obtain_transcription
+    response = urlopen(request, timeout=timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ianhsiao/miniconda3/lib/python3.12/urllib/request.py", line 215, in urlopen
+    return opener.open(url, data, timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ianhsiao/miniconda3/lib/python3.12/urllib/request.py", line 521, in open
+    response = meth(req, response)
+               ^^^^^^^^^^^^^^^^^^^
+  File "/Users/ianhsiao/miniconda3/lib/python3.12/urllib/request.py", line 630, in http_response
+    response = self.parent.error(
+               ^^^^^^^^^^^^^^^^^^
+  File "/Users/ianhsiao/miniconda3/lib/python3.12/urllib/request.py", line 559, in error
+    return self._call_chain(*args)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ianhsiao/miniconda3/lib/python3.12/urllib/request.py", line 492, in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+  File "/Users/ianhsiao/miniconda3/lib/python3.12/urllib/request.py", line 639, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 502: Bad Gateway
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/ianhsiao/Documents/thu_hackathon/backend/test.py", line 68, in recognize_speech
+    user_voice_msg = recognizer.recognize_google(audio, language="zh-CN")
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ianhsiao/Documents/thu_hackathon/backend/.venv/lib/python3.12/site-packages/speech_recognition/recognizers/google.py", line 256, in recognize_legacy
+    response_text = obtain_transcription(
+                    ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ianhsiao/Documents/thu_hackathon/backend/.venv/lib/python3.12/site-packages/speech_recognition/recognizers/google.py", line 217, in obtain_transcription
+    raise RequestError("recognition request failed: {}".format(e.reason))
+speech_recognition.exceptions.RequestError: recognition request failed: Bad Gateway
+2024-10-27 01:02:07,702 - INFO - Active chat is running...
+2024-10-27 01:02:07,791 - INFO - Resuming hot word detection...
+2024-10-27 01:02:07,990 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-10-27 01:02:07,995 - INFO - Active chat response: {'response': '{\n  "talk_needed": False,\n  "talk_content": ""\n}'}
+2024-10-27 01:02:09,996 - INFO - Active chat is running...
+2024-10-27 01:02:13,598 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-10-27 01:02:13,604 - INFO - Active chat response: {'response': '{\n  "talk_needed": False,\n  "talk_content": ""\n}'}
+2024-10-27 01:02:15,181 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-10-27 01:02:15,184 - INFO - Active chat response: {'response': '{\n  "talk_needed": False,\n  "talk_content": ""\n}'}
+2024-10-27 01:02:15,605 - INFO - Active chat is running...
+2024-10-27 01:02:17,185 - INFO - Active chat is running...
+2024-10-27 01:02:19,069 - INFO - 
+Exiting gracefully...
