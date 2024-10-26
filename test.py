@@ -1,3 +1,4 @@
+import yaml
 import pvporcupine
 import pyaudio
 import struct
@@ -9,8 +10,9 @@ import threading
 import signal
 import sys
 import asyncio
+from capture_and_save_photo import capture_and_save_photo
 
-from main import active_chat
+from main import active_chat, chat_internal, load_chat_history, save_chat_history
 
 # Load environment variables
 dotenv.load_dotenv()
@@ -30,27 +32,53 @@ resume_repeating_task.set()  # Initially, we want the task to run
 
 # Function for the repeating task
 async def repeating_task():
-    while resume_repeating_task.is_set():  # Check if the task should run
-        
+    while resume_repeating_task.is_set():
         print("active chat is running...")
-        res = await active_chat(image_url="test.png")
+        res = await active_chat(image_url=capture_and_save_photo()["file_path"])
         print(res)
-        
-        time.sleep(2)  # Adjust the frequency of the repeating task
+        await asyncio.sleep(2)  # Replace time.sleep with asyncio.sleep
 
-repeating_thread = threading.Thread(target=repeating_task, daemon=True)
+# Create a function to run the async task
+def run_repeating_task():
+    asyncio.run(repeating_task())
+
+# Update the thread creation
+repeating_thread = threading.Thread(target=run_repeating_task, daemon=True)
 
 # Function to recognize speech after wake word detection
-def recognize_speech():
+async def recognize_speech():
     with sr.Microphone() as source:
         print("Listening for command...")
         try:
-            # TODO: phrase_time_limit and timeout
-            audio = recognizer.listen(source, phrase_time_limit=2, timeout=1)
-            text = recognizer.recognize_google(audio, language="zh-CN")
-            print(f"Recognized Speech: {text}")
+            # Adjust the timeout and phrase_time_limit to be more lenient
+            recognizer.adjust_for_ambient_noise(source, duration=0.5)  # Add ambient noise adjustment
+            audio = recognizer.listen(source, phrase_time_limit=5, timeout=5)  # Increased from 2,1 to 5,5
+            user_voice_msg = recognizer.recognize_google(audio, language="zh-CN")
+            print(f"Recognized Speech: {user_voice_msg}")
+            image_url = capture_and_save_photo()["file_path"]
+
+            with open('prompts.yaml', 'r') as file:
+                prompts = yaml.safe_load(file)
+                
+            res = await chat_internal(
+                user_prompt=user_voice_msg,
+                system_prompt=prompts["passive_system_prompt"]  ,
+                image_url=image_url,
+                chat_history=load_chat_history()
+            )
+            print(res)
+            save_chat_history(res)
+            
+        except sr.WaitTimeoutError:
+            print("No speech detected within timeout period")
+        except sr.UnknownValueError:
+            print("Could not understand the audio")
         except Exception as e:
             print(f"Error during recognition: {e}")
+
+# Update the function to run the async recognition
+def run_recognition():
+    asyncio.run(recognize_speech())
 
 # Callback function to execute on hot word detection
 def on_wake_word_detected():
@@ -61,14 +89,14 @@ def on_wake_word_detected():
     # Pause repeating task
     resume_repeating_task.clear()
     
-    # Start speech recognition in a separate thread
-    recognition_thread = threading.Thread(target=recognize_speech)
+    # Start speech recognition in a separate thread with the new runner function
+    recognition_thread = threading.Thread(target=run_recognition)
     recognition_thread.start()
 
     # Resume repeating task after recognition starts in background
     recognition_thread.join()  # Wait until the recognition is complete
     
-    repeating_thread = threading.Thread(target=repeating_task, daemon=True)
+    repeating_thread = threading.Thread(target=run_repeating_task, daemon=True)
     resume_repeating_task.set()
     repeating_thread.start()
 
