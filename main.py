@@ -180,13 +180,20 @@ async def chat_internal(user_prompt, system_prompt, image_url, chat_history):
         # Prepare messages array starting with system prompt
         messages = [{'role': 'system', 'content': system_prompt}]
         
-        # Add chat history
-        for msg in chat_history:
-            messages.append({
-                'role': msg['role'],
-                'content': msg['content']
-            })
-        
+        # Add chat history - Fix the message formatting
+        if chat_history:
+            for msg in chat_history:
+                # Check if msg is already a dictionary
+                if isinstance(msg, dict) and 'role' in msg and 'content' in msg:
+                    messages.append(msg)
+                # If msg is a string, assume it's content and determine role
+                elif isinstance(msg, str):
+                    # You might want to adjust this logic based on your needs
+                    messages.append({
+                        'role': 'assistant',
+                        'content': msg
+                    })
+
         # Add current user message with image
         messages.append({'role': 'user', 'content': user_content})
         
