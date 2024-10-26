@@ -111,7 +111,7 @@ async def active_chat(
     message: str = Form(...), # user's message from frontend textarea input
     image_url: str = Form(...),
     user_prompt: str = prompts['active_user_prompt'],
-    system_prompt: str = prompts['active_system_prompt'],
+    system_prompt: str = prompts['passive_system_prompt'].format(recipe=prompts['recipe']['egg']),
     chat_history: list = None
 ):
     chat_history = load_chat_history()
