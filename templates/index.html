@@ -137,7 +137,7 @@
           .then((response) => response.json())
           .then((data) => {
             conversation.innerHTML += "You: " + message + "<br>";
-            conversation.innerHTML += "Remi: " + data.response + "<br>";
+            conversation.innerHTML += "REMY: " + data.response + "<br>";
             document.getElementById("message").value = "";
 
             // Auto-scroll to bottom of conversation
