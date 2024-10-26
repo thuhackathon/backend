@@ -38,6 +38,10 @@ def load_chat_history():
 def save_chat_history(chat_history):
     with open('chat_history.json', 'w') as file:
         json.dump(chat_history, file)
+def reset_chat_history():
+    chat_history = []
+    save_chat_history(chat_history)
+
 
 # Basic Configurations 
 # AI configuration
@@ -49,7 +53,7 @@ openai_model = 'gpt-4o-mini'
 zhipuai_model = 'glm-4v'
 
 # Choose AI provider
-AI_PROVIDER = 'zhipuai' # 'openai' | 'zhipuai', we have a bug with openai currently
+AI_PROVIDER = 'openai' # 'openai' | 'zhipuai', we have a bug with openai currently
 
 if AI_PROVIDER == 'openai':
     client = OpenAI(api_key=OPENAI_API_KEY)
@@ -103,18 +107,17 @@ async def process_image(image_data: ImageData):
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.post("/chat")
-async def chat(
-    message: str = Form(...),
+async def active_chat(
+    message: str = Form(...), # user's message from frontend textarea input
     image_url: str = Form(...),
-    user_prompt: str = prompts['passive_user_prompt'],
-    system_prompt: str = prompts['passive_system_prompt'],
+    user_prompt: str = prompts['active_user_prompt'],
+    system_prompt: str = prompts['active_system_prompt'],
     chat_history: list = None
 ):
-    if chat_history is None:
-        chat_history = load_chat_history()
+    chat_history = load_chat_history()
         
     # Use the message as the user_prompt
-    user_prompt = message
+    # user_prompt = message
     
     return await chat_internal(
         user_prompt=user_prompt,
@@ -189,7 +192,8 @@ async def chat_internal(user_prompt, system_prompt, image_url, chat_history):
         # Make API call with full message history
         response = client.chat.completions.create(
             model=model,
-            messages=messages
+            messages=messages,
+            max_tokens=300
         )
 
         # Extract the AI's response from the API result
@@ -216,14 +220,16 @@ async def chat_internal(user_prompt, system_prompt, image_url, chat_history):
 
     
 if __name__ == "__main__":
+    # reset chat history
+    reset_chat_history()
     import uvicorn
     uvicorn.run(app, host="127.0.0.1", port=8000)
     
     # start_time = time.time()
-    # asyncio.run(chat(
-    #     user_prompt=prompts['passive_user_prompt'],
-    #     system_prompt=prompts['passive_system_prompt'], 
-    #     image_url="./static/uploads/1729911720.788223.jpg",
+    # asyncio.run(chat_internal(
+    #     user_prompt=prompts['active_user_prompt'],
+    #     system_prompt=prompts['active_system_prompt'], 
+    #     image_url="./static/uploads/1729948639.8396459.jpg",
     #     chat_history=load_chat_history()
     # ))
     # end_time = time.time()

@@ -82,39 +82,94 @@
       // Get the video element
       var video = document.getElementById("video");
       var image_url;
+      var isProcessing = false; // Add this flag at the top with other variables
 
+      // Store interval ID so we can clear it later
+      var processInterval;
+
+      // Function to start processing
+      function startProcessing() {
+        processInterval = setInterval(function () {
+          // Skip if still processing previous request
+          if (isProcessing) {
+            console.log("Still processing previous request, skipping...");
+            return;
+          }
+
+          isProcessing = true; // Set flag before starting
+
+          var canvas = document.createElement("canvas");
+          canvas.width = 640;
+          canvas.height = 480;
+          var context = canvas.getContext("2d");
+          context.drawImage(video, 0, 0, 640, 480);
+          var data = canvas.toDataURL("image/jpeg");
+
+          // Send the image data to the /process endpoint
+          fetch("/process", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ data: data }),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              // Store the image_url
+              image_url = data.image;
+
+              // Create FormData for automated message
+              const formData = new FormData();
+              formData.append("message", "AUTO_MESSAGE"); // You can customize this
+              formData.append("image_url", image_url);
+
+              // Send automated message to chat
+              return fetch("/chat", {
+                method: "POST",
+                body: formData,
+              });
+            })
+            .then((response) => response.json())
+            .then((data) => {
+              // Only add REMY's response to the conversation
+              conversation.innerHTML += "REMY: " + data.response + "<br>";
+
+              // Auto-scroll to bottom of conversation
+              conversation.scrollTop = conversation.scrollHeight;
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+              conversation.innerHTML +=
+                "Error: Failed to process image or send message<br>";
+            })
+            .finally(() => {
+              isProcessing = false; // Reset flag when done (success or failure)
+            });
+        }, 5000);
+      }
+
+      // Function to stop processing
+      function stopProcessing() {
+        if (processInterval) {
+          clearInterval(processInterval);
+        }
+      }
+
+      // Add event listener for when the page is about to unload
+      window.addEventListener("beforeunload", function () {
+        stopProcessing();
+      });
+
+      // Start processing when everything is ready
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         navigator.mediaDevices
           .getUserMedia({ video: true })
           .then(function (stream) {
             video.srcObject = stream;
             video.play();
+            startProcessing(); // Start the interval after video is ready
           });
       }
-
-      // Capture an image from the video stream every second
-      setInterval(function () {
-        var canvas = document.createElement("canvas");
-        canvas.width = 640;
-        canvas.height = 480;
-        var context = canvas.getContext("2d");
-        context.drawImage(video, 0, 0, 640, 480);
-        var data = canvas.toDataURL("image/jpeg");
-
-        // Send the image data to the /process endpoint
-        fetch("/process", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ data: data }), // Change 'image' to 'data' to match backend
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            // Store the image_url
-            image_url = data.image;
-          });
-      }, 1000);
 
       // Handle the chat form submission
       var form = document.getElementById("chat-form");
