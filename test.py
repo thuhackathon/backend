@@ -8,6 +8,9 @@ import time
 import threading
 import signal
 import sys
+import asyncio
+
+from main import active_chat
 
 # Load environment variables
 dotenv.load_dotenv()
@@ -26,9 +29,13 @@ resume_repeating_task = threading.Event()
 resume_repeating_task.set()  # Initially, we want the task to run
 
 # Function for the repeating task
-def repeating_task():
+async def repeating_task():
     while resume_repeating_task.is_set():  # Check if the task should run
-        print("Repeating task is running...")
+        
+        print("active chat is running...")
+        res = await active_chat(image_url="test.png")
+        print(res)
+        
         time.sleep(2)  # Adjust the frequency of the repeating task
 
 repeating_thread = threading.Thread(target=repeating_task, daemon=True)
