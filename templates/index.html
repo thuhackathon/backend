@@ -74,7 +74,7 @@
         <div id="conversation"></div>
         <form id="chat-form">
           <input type="text" id="message" autocomplete="off" />
-          <button type="submit">Send</button>
+          <!-- <button type="submit">Send</button> -->
         </form>
       </div>
     </div>
@@ -124,12 +124,14 @@
       form.addEventListener("submit", function (e) {
         e.preventDefault();
         var message = document.getElementById("message").value;
+        if (!message) return
 
         // Create FormData object
         const formData = new FormData();
         formData.append("message", message);
         formData.append("image_url", image_url);
 
+        document.getElementById("message").value = "";
         fetch("/chat", {
           method: "POST",
           body: formData, // Send as FormData instead of URL-encoded
@@ -138,7 +140,6 @@
           .then((data) => {
             conversation.innerHTML += "You: " + message + "<br>";
             conversation.innerHTML += "REMY: " + data.response + "<br>";
-            document.getElementById("message").value = "";
 
             // Auto-scroll to bottom of conversation
             conversation.scrollTop = conversation.scrollHeight;
