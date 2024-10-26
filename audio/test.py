@@ -31,6 +31,8 @@ def repeating_task():
         print("Repeating task is running...")
         time.sleep(2)  # Adjust the frequency of the repeating task
 
+repeating_thread = threading.Thread(target=repeating_task, daemon=True)
+
 # Function to recognize speech after wake word detection
 def recognize_speech():
     with sr.Microphone() as source:
@@ -46,13 +48,11 @@ def recognize_speech():
 # Callback function to execute on hot word detection
 def on_wake_word_detected():
     global resume_repeating_task
+    global repeating_thread
     print("Hey Remy detected! Starting speech recognition...")
 
     # Pause repeating task
     resume_repeating_task.clear()
-
-    # Run speech recognition
-    # recognize_speech()
     
     # Start speech recognition in a separate thread
     recognition_thread = threading.Thread(target=recognize_speech)
@@ -60,7 +60,10 @@ def on_wake_word_detected():
 
     # Resume repeating task after recognition starts in background
     recognition_thread.join()  # Wait until the recognition is complete
+    
+    repeating_thread = threading.Thread(target=repeating_task, daemon=True)
     resume_repeating_task.set()
+    repeating_thread.start()
 
 # Function to listen for hot word
 def listen_for_hotword():
@@ -115,8 +118,9 @@ def main():
 
     signal.signal(signal.SIGINT, signal_handler)
 
+
     # Start the repeating task in a separate thread as a daemon
-    repeating_thread = threading.Thread(target=repeating_task, daemon=True)
+    # repeating_thread = threading.Thread(target=repeating_task, daemon=True)
     repeating_thread.start()
 
     try:
