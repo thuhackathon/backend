@@ -107,7 +107,7 @@
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ image: data }),
+          body: JSON.stringify({ data: data }), // Change 'image' to 'data' to match backend
         })
           .then((response) => response.json())
           .then((data) => {
@@ -124,22 +124,28 @@
       form.addEventListener("submit", function (e) {
         e.preventDefault();
         var message = document.getElementById("message").value;
+
+        // Create FormData object
+        const formData = new FormData();
+        formData.append("message", message);
+        formData.append("image_url", image_url);
+
         fetch("/chat", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body:
-            "message=" +
-            encodeURIComponent(message) +
-            "&image_url=" +
-            encodeURIComponent(image_url),
+          body: formData, // Send as FormData instead of URL-encoded
         })
           .then((response) => response.json())
           .then((data) => {
             conversation.innerHTML += "You: " + message + "<br>";
             conversation.innerHTML += "Remi: " + data.response + "<br>";
             document.getElementById("message").value = "";
+
+            // Auto-scroll to bottom of conversation
+            conversation.scrollTop = conversation.scrollHeight;
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            conversation.innerHTML += "Error: Failed to send message<br>";
           });
       });
     </script>

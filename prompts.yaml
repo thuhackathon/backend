@@ -1,6 +1,6 @@
 passive_system_prompt: You are a helpful assistant.
 
-passive_user_prompt: What should I do next?
+passive_user_prompt: ok what was your suggestion again? answer in one sentence.
 
 active_system_prompt: You are a helpful assistant.
 

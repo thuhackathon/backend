@@ -1,5 +1,7 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Form
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import os
@@ -13,6 +15,9 @@ from dotenv import load_dotenv
 from zhipuai import ZhipuAI
 import yaml
 import json
+import asyncio
+
+
 # Load environment variables
 load_dotenv()
 
@@ -41,10 +46,10 @@ ZHIPU_API_KEY = os.getenv('ZHIPU_API_KEY')
 
 # Model settings
 openai_model = 'gpt-4o-mini'
-zhipuai_model = 'glm-4-plus'
+zhipuai_model = 'glm-4v'
 
 # Choose AI provider
-AI_PROVIDER = 'openai' # 'openai' | 'zhipuai'
+AI_PROVIDER = 'zhipuai' # 'openai' | 'zhipuai', we have a bug with openai currently
 
 if AI_PROVIDER == 'openai':
     client = OpenAI(api_key=OPENAI_API_KEY)
@@ -63,9 +68,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.mount("/static", StaticFiles(directory="./templates"), name="static")
+
 @app.get("/")
-async def root():
-    return {"message": "Welcome to the API"}
+async def home():
+    return FileResponse("templates/index.html")
 
 # Create uploads directory
 upload_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "uploads")
@@ -73,10 +80,6 @@ os.makedirs(upload_folder, exist_ok=True)
 
 class ImageData(BaseModel):
     data: str
-
-class ChatRequest(BaseModel):
-    message: str
-    image_url: Optional[str] = None
 
 @app.post("/process")
 async def process_image(image_data: ImageData):
@@ -100,18 +103,61 @@ async def process_image(image_data: ImageData):
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.post("/chat")
-async def chat(chat_request: ChatRequest,
-                system_prompt: str = prompts['passive_system_prompt'], 
-                user_prompt: str = prompts['passive_user_prompt'],
-                chat_history: list = load_chat_history()):
+async def chat(
+    message: str = Form(...),
+    image_url: str = Form(...),
+    user_prompt: str = prompts['passive_user_prompt'],
+    system_prompt: str = prompts['passive_system_prompt'],
+    chat_history: list = None
+):
+    if chat_history is None:
+        chat_history = load_chat_history()
+        
+    # Use the message as the user_prompt
+    user_prompt = message
     
-    if not os.path.exists(chat_request.image_url):
+    return await chat_internal(
+        user_prompt=user_prompt,
+        system_prompt=system_prompt,
+        image_url=image_url,
+        chat_history=chat_history
+    )
+
+# Create a separate internal chat function for the existing logic
+async def chat_internal(user_prompt, system_prompt, image_url, chat_history):
+    """
+    Process a chat with optional image input and maintain chat history.
+
+    Args:
+        user_prompt (str): The user's text input/question. Defaults to passive_user_prompt. It can also be the user's voice input (in string).
+        system_prompt (str): System instructions for the AI. Defaults to passive_system_prompt.
+        image_url (Optional[str]): Path to an image file to analyze. Defaults to None.
+        chat_history (list): Previous chat messages. Defaults to loaded chat history.
+
+    Returns:
+        dict: Contains 'response' key with the AI's text response.
+
+    Raises:
+        HTTPException: 
+            - 404 if image file not found
+            - 500 for other processing errors
+
+    The function:
+    1. Validates the image file if provided
+    2. Converts image to base64 format
+    3. Constructs message array with system prompt, chat history, and current query
+    4. Makes API call to AI provider
+    5. Updates and saves chat history
+    6. Returns AI response
+    """
+    
+    if not os.path.exists(image_url):
         raise HTTPException(status_code=404, detail="Image file not found")
 
     try:
         # Open the image in binary mode
         # Read the image file into binary data
-        with open(chat_request.image_url, 'rb') as image_file:
+        with open(image_url, 'rb') as image_file:
             image_data = image_file.read()
 
         # Convert binary image data to base64 string format
@@ -120,44 +166,65 @@ async def chat(chat_request: ChatRequest,
 
         # Prepare the content for the API request
         # Start with the text message in the required format
-        user_content = [{"type": "text", "text": chat_request.message}]
+        user_content = [{"type": "text", "text": user_prompt}]
         
         # If an image was provided, add it to the content
         # The image needs to be in data URL format: data:image/jpeg;base64,<base64 string>
-        if chat_request.image_url:
+        if image_url:
             user_content.append({"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{encoded_image}"}})
 
-        # Make the API call to GPT-4 Vision
-        # We send both the system message (defining the AI's role)
-        # and the user's content (text + image)
+        # Prepare messages array starting with system prompt
+        messages = [{'role': 'system', 'content': system_prompt}]
+        
+        # Add chat history
+        for msg in chat_history:
+            messages.append({
+                'role': msg['role'],
+                'content': msg['content']
+            })
+        
+        # Add current user message with image
+        messages.append({'role': 'user', 'content': user_content})
+        
+        # Make API call with full message history
         response = client.chat.completions.create(
             model=model,
-            messages=[
-                {'role': 'system', 'content': system_prompt}, # a system prompt
-                {'role': 'user', 'content': user_prompt + user_content}
-            ]
+            messages=messages
         )
 
         # Extract the AI's response from the API result
         # Convert the response object to a dictionary and get the message content
         response_dict = response.to_dict()
         # Update chat history with the new messages
+        response_message = response_dict['choices'][0]['message']['content']
         
         chat_history.append({
             'role': 'user',
-            'content': chat_request.message
+            'content': user_prompt
         })
         chat_history.append({
             'role': 'assistant', 
-            'content': response_dict['choices'][0]['message']['content']
+            'content': response_message
         })
         save_chat_history(chat_history)
         
-        return {"response": response_dict['choices'][0]['message']['content']}
+        return {"response": response_message}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+    
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+    
+    # start_time = time.time()
+    # asyncio.run(chat(
+    #     user_prompt=prompts['passive_user_prompt'],
+    #     system_prompt=prompts['passive_system_prompt'], 
+    #     image_url="./static/uploads/1729911720.788223.jpg",
+    #     chat_history=load_chat_history()
+    # ))
+    # end_time = time.time()
+    # print(f"Execution time: {end_time - start_time:.2f} seconds")
