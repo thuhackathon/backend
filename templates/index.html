@@ -1,71 +1,14 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Webcam Test</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        background-color: #f0f0f0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-      }
-      .container {
-        display: flex;
-      }
-      #chat,
-      #conversation {
-        box-sizing: border-box; /* Include padding and border in total width and height */
-      }
-      #video,
-      #chat {
-        width: 640px; /* Set a fixed width */
-        object-fit: cover; /* Ensure the video covers the entire size of the video element */
-      }
-      #video {
-        height: 480px; /* Set a fixed height for the video */
-      }
-      #chat {
-        flex: none; /* Allow the chat box to grow and shrink as needed */
-        max-width: none;
-        height: 480px;
-        background-color: #add8e6;
-        border-radius: 5px;
-        padding: 20px;
-        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-      }
-      #conversation {
-        height: calc(100% - 60px);
-        border: 1px solid #ddd;
-        padding: 10px;
-        margin-bottom: 20px;
-        overflow-y: auto;
-      }
-      #chat-form {
-        display: flex;
-      }
-      #chat-form input {
-        flex-grow: 1;
-        margin-right: 10px;
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-      }
-      #chat-form button {
-        padding: 10px 20px;
-        border: none;
-        background-color: #007bff;
-        color: #fff;
-        cursor: pointer;
-        border-radius: 5px;
-      }
-      #chat-form button:hover {
-        background-color: #0056b3;
-      }
-    </style>
+    <link rel="stylesheet" href="/static/css/styles.css" />
   </head>
   <body>
     <div class="container">
@@ -78,131 +21,6 @@
         </form>
       </div>
     </div>
-    <script>
-      // Get the video element
-      var video = document.getElementById("video");
-      var image_url;
-      var isProcessing = false; // Add this flag at the top with other variables
-
-      // Store interval ID so we can clear it later
-      var processInterval;
-
-      // Function to start processing
-      function startProcessing() {
-        processInterval = setInterval(function () {
-          // Skip if still processing previous request
-          if (isProcessing) {
-            console.log("Still processing previous request, skipping...");
-            return;
-          }
-
-          isProcessing = true; // Set flag before starting
-
-          var canvas = document.createElement("canvas");
-          canvas.width = 640;
-          canvas.height = 480;
-          var context = canvas.getContext("2d");
-          context.drawImage(video, 0, 0, 640, 480);
-          var data = canvas.toDataURL("image/jpeg");
-
-          // Send the image data to the /process endpoint
-          fetch("/process", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ data: data }),
-          })
-            .then((response) => response.json())
-            .then((data) => {
-              // Store the image_url
-              image_url = data.image;
-
-              // Create FormData for automated message
-              const formData = new FormData();
-              formData.append("message", "AUTO_MESSAGE"); // You can customize this
-              formData.append("image_url", image_url);
-
-              // Send automated message to chat
-              return fetch("/chat", {
-                method: "POST",
-                body: formData,
-              });
-            })
-            .then((response) => response.json())
-            .then((data) => {
-              // Only add REMY's response to the conversation
-              conversation.innerHTML += "REMY: " + data.response + "<br>";
-
-              // Auto-scroll to bottom of conversation
-              conversation.scrollTop = conversation.scrollHeight;
-            })
-            .catch((error) => {
-              console.error("Error:", error);
-              conversation.innerHTML +=
-                "Error: Failed to process image or send message<br>";
-            })
-            .finally(() => {
-              isProcessing = false; // Reset flag when done (success or failure)
-            });
-        }, 5000);
-      }
-
-      // Function to stop processing
-      function stopProcessing() {
-        if (processInterval) {
-          clearInterval(processInterval);
-        }
-      }
-
-      // Add event listener for when the page is about to unload
-      window.addEventListener("beforeunload", function () {
-        stopProcessing();
-      });
-
-      // Start processing when everything is ready
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices
-          .getUserMedia({ video: true })
-          .then(function (stream) {
-            video.srcObject = stream;
-            video.play();
-            startProcessing(); // Start the interval after video is ready
-          });
-      }
-
-      // Handle the chat form submission
-      var form = document.getElementById("chat-form");
-      var conversation = document.getElementById("conversation");
-
-      // Send the message to the /chat endpoint
-      form.addEventListener("submit", function (e) {
-        e.preventDefault();
-        var message = document.getElementById("message").value;
-
-        // Create FormData object
-        const formData = new FormData();
-        formData.append("message", message);
-        formData.append("image_url", image_url);
-
-        fetch("/chat", {
-          method: "POST",
-          body: formData, // Send as FormData instead of URL-encoded
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            conversation.innerHTML += "You: " + message + "<br>";
-            conversation.innerHTML += "REMY: " + data.response + "<br>";
-            document.getElementById("message").value = "";
-
-            // Auto-scroll to bottom of conversation
-            conversation.scrollTop = conversation.scrollHeight;
-          })
-          .catch((error) => {
-            console.error("Error:", error);
-            conversation.innerHTML += "Error: Failed to send message<br>";
-          });
-      });
-    </script>
+    <script src="/static/js/app.js"></script>
   </body>
 </html>
