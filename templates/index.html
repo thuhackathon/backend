@@ -107,14 +107,38 @@
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ data: data }), // Change 'image' to 'data' to match backend
+          body: JSON.stringify({ data: data }),
         })
           .then((response) => response.json())
           .then((data) => {
             // Store the image_url
             image_url = data.image;
+
+            // Create FormData for automated message
+            const formData = new FormData();
+            formData.append("message", "AUTO_MESSAGE"); // You can customize this
+            formData.append("image_url", image_url);
+
+            // Send automated message to chat
+            return fetch("/chat", {
+              method: "POST",
+              body: formData,
+            });
+          })
+          .then((response) => response.json())
+          .then((data) => {
+            // Only add REMY's response to the conversation
+            conversation.innerHTML += "REMY: " + data.response + "<br>";
+
+            // Auto-scroll to bottom of conversation
+            conversation.scrollTop = conversation.scrollHeight;
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            conversation.innerHTML +=
+              "Error: Failed to process image or send message<br>";
           });
-      }, 1000);
+      }, 5000);
 
       // Handle the chat form submission
       var form = document.getElementById("chat-form");
