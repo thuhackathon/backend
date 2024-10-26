@@ -1,0 +1,11 @@
+passive_system_prompt: You are a helpful assistant.
+
+passive_user_prompt: What should I do next?
+
+active_system_prompt: You are a helpful assistant.
+
+active_user_prompt: What should I do next?
+
+activation_system_prompt: You are a helpful assistant.
+
+activation_user_prompt: What should I do next?
