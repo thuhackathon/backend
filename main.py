@@ -103,18 +103,17 @@ async def process_image(image_data: ImageData):
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.post("/chat")
-async def chat(
-    message: str = Form(...),
+async def active_chat(
+    message: str = Form(...), # user's message from frontend textarea input
     image_url: str = Form(...),
-    user_prompt: str = prompts['passive_user_prompt'],
-    system_prompt: str = prompts['passive_system_prompt'],
+    user_prompt: str = prompts['active_user_prompt'],
+    system_prompt: str = prompts['active_system_prompt'],
     chat_history: list = None
 ):
-    if chat_history is None:
-        chat_history = load_chat_history()
+    chat_history = load_chat_history()
         
     # Use the message as the user_prompt
-    user_prompt = message
+    # user_prompt = message
     
     return await chat_internal(
         user_prompt=user_prompt,
@@ -189,7 +188,8 @@ async def chat_internal(user_prompt, system_prompt, image_url, chat_history):
         # Make API call with full message history
         response = client.chat.completions.create(
             model=model,
-            messages=messages
+            messages=messages,
+            max_tokens=300
         )
 
         # Extract the AI's response from the API result
@@ -217,7 +217,7 @@ async def chat_internal(user_prompt, system_prompt, image_url, chat_history):
     
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=8000)
     
     # start_time = time.time()
     # asyncio.run(chat(
