@@ -1,36 +1,44 @@
 # Remy AI Assistant
 
+completed by Team **AI拼才会赢**, by [Ian](https://github.com/madeyexz), [Jimmy](https://github.com/JimmyyyChen) and [Pinchen](https://github.com/sadlorax)
+
 This project implements an AI assistant named Remy, capable of processing images, engaging in conversations, and responding to voice commands.
+- Process voice commands
+- Take pictures from the webcam, analyze them, and provide cooking guidance
+- Listen for the wake word "Hey Remy"
+- Maintain conversational context
 
 ## Thought Processes
-API Doc
+### API Doc
 ![API Doc](demo_pic/hepta.png)
-Thought Process
+### Thought Process
 ![Thought Process](demo_pic/freeform.png)
 
 
 ## Installation
 
-1. Ensure you have Python 3.8+ installed.
-
-2. Install `uv` if you haven't already:
+1. Install `uv` if you haven't already:
    ```
-   pip install uv   ```
+   pip install uv
+   ```
 
-3. Clone the repository and navigate to the project directory.
+2. Clone the repository and navigate to the project directory.
 
-4. Create a virtual environment and install dependencies:
+3. Create a virtual environment and install dependencies:
    ```
    uv venv
    source .venv/bin/activate  # On Windows, use: .venv\Scripts\activate
-   uv pip install -r requirements.txt   ```
+   uv pip install -r requirements.txt
+   ```
 
-5. Set up environment variables:
+4. Set up environment variables:
    - Create a `.env` file in the project root.
-   - Add your API keys:     ```
-     OPENAI_API_KEY=your_openai_api_key
-     ZHIPU_API_KEY=your_zhipu_api_key
-     PORCUPINE_ACCESS_KEY=your_porcupine_access_key     ```
+   - Add your API keys:     
+        ```
+        OPENAI_API_KEY=your_openai_api_key
+        ZHIPU_API_KEY=your_zhipu_api_key
+        PORCUPINE_ACCESS_KEY=your_porcupine_access_key
+        ```
 
 ## Main Components
 
@@ -74,7 +82,7 @@ python test.py
 ```
 
 The assistant will now be ready to:
-- Listen for the wake word "Hey Remy"
 - Process voice commands
-- Analyze images and provide cooking guidance
+- Take pictures from the webcam, analyze them, and provide cooking guidance
+- Listen for the wake word "Hey Remy"
 - Maintain conversational context
