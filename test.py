@@ -12,6 +12,8 @@ import sys
 import asyncio
 from capture_and_save_photo import capture_and_save_photo
 import logging
+import tkinter as tk
+from PIL import Image, ImageTk
 
 from main import active_chat, chat_internal, load_chat_history, save_chat_history
 
@@ -29,6 +31,15 @@ logger = logging.getLogger(__name__)
 # Load environment variables
 dotenv.load_dotenv()
 ACCESS_KEY = os.getenv("PORCUPINE_ACCESS_KEY")
+
+# Initialize Tkinter
+root = tk.Tk()
+root.title("Latest Captured Image")
+root.geometry("400x300")
+
+# Label for displaying the image
+image_label = tk.Label(root)
+image_label.pack()
 
 # Initialize Porcupine for hot word detection
 def init_porcupine():
@@ -49,6 +60,19 @@ async def repeating_task():
         res = await active_chat(image_url=capture_and_save_photo()["file_path"])
         logger.info(f"Active chat response: {res}")
         await asyncio.sleep(2)  # Replace time.sleep with asyncio.sleep
+
+# Function to update the Tkinter label with the latest image
+def update_image():
+    image_path = capture_and_save_photo()["file_path"]
+    image = Image.open(image_path)
+    image = image.resize((300, 200))  # Resize for display in Tkinter
+    photo = ImageTk.PhotoImage(image)
+    image_label.config(image=photo)
+    image_label.image = photo  # Keep a reference to avoid garbage collection
+    root.after(2000, update_image)  # Schedule to update the image every 2 seconds
+
+# Start updating images in Tkinter
+update_image()
 
 # Create a function to run the async task
 def run_repeating_task():
@@ -169,6 +193,9 @@ def main():
     # Start the repeating task in a separate thread as a daemon
     # repeating_thread = threading.Thread(target=repeating_task, daemon=True)
     repeating_thread.start()
+
+    # Start Tkinter mainloop
+    root.mainloop()
 
     try:
         listen_for_hotword()

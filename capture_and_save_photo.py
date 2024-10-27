@@ -2,6 +2,11 @@ import cv2
 import base64
 import os
 import time
+import tkinter as tk
+from tkinter import Label
+from PIL import Image, ImageTk
+
+latest_img_path = ""  # Global variable to store the latest image path
 
 def capture_and_save_photo() -> dict[str, str]:
     """Returns:
@@ -9,8 +14,12 @@ def capture_and_save_photo() -> dict[str, str]:
             - 'base64': Base64 encoded image data with data URI prefix (str)
             - 'file_path': Path where the image file was saved (str)
     """
+    global latest_img_path  # Update the global variable
+    
     # Initialize webcam
-    video_capture = cv2.VideoCapture(0)
+    video_capture = cv2.VideoCapture(1)
+    if not video_capture.isOpened():
+        video_capture = cv2.VideoCapture(0)
     if not video_capture.isOpened():
         raise Exception("Could not open webcam")
 
@@ -37,6 +46,8 @@ def capture_and_save_photo() -> dict[str, str]:
         # Save image to file
         cv2.imwrite(file_path, frame)
 
+        latest_img_path = file_path  # Update the global variable with the file path
+
         # Convert to base64
         _, buffer = cv2.imencode('.jpg', frame)
         base64_data = base64.b64encode(buffer).decode('utf-8')
@@ -49,11 +60,32 @@ def capture_and_save_photo() -> dict[str, str]:
     finally:
         video_capture.release()
 
-if __name__ == "__main__":
-    # Test the function
+def update_latest_image_label(label):
+    """Function to update the Tkinter label with the latest captured image."""
     try:
-        result = capture_and_save_photo()
-        print(f"Photo saved to: {result['file_path']}")
-        print("Base64 data:", result['base64'][:50] + "...")  # Print first 50 chars of base64
+        capture_and_save_photo()  # Capture and update latest image path
+        # Load the captured image and display it in Tkinter
+        image = Image.open(latest_img_path)
+        image = image.resize((300, 200))  # Resize for display in Tkinter
+        photo = ImageTk.PhotoImage(image)
+        label.config(image=photo)
+        label.image = photo  # Keep a reference to avoid garbage collection
     except Exception as e:
-        print(f"Error: {str(e)}")
+        label.config(text=f"Error: {str(e)}")
+
+
+if __name__ == "__main__":
+    # Tkinter setup
+    root = tk.Tk()
+    root.title("Latest Captured Image")
+    root.geometry("400x300")
+
+    # Label to show the latest captured image
+    latest_img_label = Label(root, text="No image captured yet.")
+    latest_img_label.pack(pady=20)
+
+    # Button to capture a photo and update the label with the image
+    capture_button = tk.Button(root, text="Capture Photo", command=lambda: update_latest_image_label(latest_img_label))
+    capture_button.pack(pady=10)
+
+    root.mainloop()
