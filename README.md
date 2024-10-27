@@ -1,4 +1,4 @@
-# Remy AI Assistant
+# Hey REMY!
 
 completed by Team **AI拼才会赢**, by [Ian](https://github.com/madeyexz), [Jimmy](https://github.com/JimmyyyChen) and [Pinchen](https://github.com/sadlorax)
 
