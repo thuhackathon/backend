@@ -2,4 +2,7 @@
 .venv/
 chat_history.json
 __pycache__/
-static/
+static/uploads/
+statics/uploads/
+*.log
+remy.log

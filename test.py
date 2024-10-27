@@ -1,5 +1,6 @@
 import yaml
 import pvporcupine
+from ast import literal_eval
 import pyaudio
 import struct
 import speech_recognition as sr
@@ -14,8 +15,11 @@ from capture_and_save_photo import capture_and_save_photo
 import logging
 import tkinter as tk
 from PIL import Image, ImageTk
-
+from audio.tts import synthesize
 from main import active_chat, chat_internal, load_chat_history, save_chat_history
+import pygame
+from pygame import mixer
+import json  # Add this to imports if not already present
 
 # Add logging configuration near the top of the file after imports
 logging.basicConfig(
@@ -27,6 +31,9 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
+# Initialize pygame mixer
+pygame.mixer.init()
 
 # Load environment variables
 dotenv.load_dotenv()
@@ -53,13 +60,51 @@ recognizer = sr.Recognizer()
 resume_repeating_task = threading.Event()
 resume_repeating_task.set()  # Initially, we want the task to run
 
+def play_audio(file_path='audio.mp3'):
+    try:
+        mixer.music.load(file_path)
+        mixer.music.play()
+        while mixer.music.get_busy():  # Wait for audio to finish playing
+            pygame.time.Clock().tick(10)
+    except Exception as e:
+        logger.error(f"Error playing audio: {e}")
+
 # Function for the repeating task
 async def repeating_task():
     while resume_repeating_task.is_set():
         logger.info("Active chat is running...")
         res = await active_chat(image_url=capture_and_save_photo()["file_path"])
         logger.info(f"Active chat response: {res}")
-        await asyncio.sleep(2)  # Replace time.sleep with asyncio.sleep
+        logger.info(f"Response string to parse: {res['response']}")  # Debug log
+        cleaned_response = res["response"].replace("\n", "").replace("\\n", "").replace("`", "")
+        try:
+            response_dict = literal_eval(cleaned_response)  # Parse the string into a dictionary
+            # print("RESPONSE DICT: ", response_dict)
+            # print("TALK NEEDED: ", response_dict.get("talk_needed"))
+            # print("TYPE: ", type(response_dict.get("talk_needed")))
+            if response_dict.get("talk_needed") == "True" or response_dict.get("talk_needed") == True:  # Check if talk_needed is True
+                synthesize(response_dict["talk_content"])
+                play_audio()
+        except json.JSONDecodeError as e:
+            logger.error(f"JSON parsing error: {e}")
+            logger.error(f"Failed to parse string: {res['response']}")
+            # Continue with default behavior if parsing fails
+            synthesize(res["response"])
+            play_audio()
+        await asyncio.sleep(2)
+
+# Function to update the Tkinter label with the latest image
+def update_image():
+    image_path = capture_and_save_photo()["file_path"]
+    image = Image.open(image_path)
+    image = image.resize((300, 200))  # Resize for display in Tkinter
+    photo = ImageTk.PhotoImage(image)
+    image_label.config(image=photo)
+    image_label.image = photo  # Keep a reference to avoid garbage collection
+    root.after(2000, update_image)  # Schedule to update the image every 2 seconds
+
+# Start updating images in Tkinter
+update_image()
 
 # Function to update the Tkinter label with the latest image
 def update_image():
@@ -103,6 +148,22 @@ async def recognize_speech():
                 chat_history=load_chat_history()
             )
             logger.info(f"Chat response: {res}")
+            logger.info(f"Response string to parse: {res['response']}")  # Debug log
+            cleaned_response = res["response"].replace("\n", "").replace("\\n", "").replace("`", "")
+            try:
+                response_dict = literal_eval(cleaned_response)  # Parse the string into a dictionary
+                # print("RESPONSE DICT: ", response_dict)
+                # print("TALK NEEDED: ", response_dict.get("talk_needed"))
+                # print("TYPE: ", type(response_dict.get("talk_needed")))
+                if response_dict.get("talk_needed") == "True" or response_dict.get("talk_needed") == True:  # Check if talk_needed is True
+                    synthesize(response_dict["talk_content"])
+                    play_audio()
+            except (json.JSONDecodeError, ValueError, SyntaxError) as e:
+                logger.error(f"JSON parsing error: {e}")
+                logger.error(f"Failed to parse string: {res['response']}")
+                # Continue with default behavior if parsing fails
+                synthesize(res["response"])
+                play_audio() 
             save_chat_history(res)
             
         except sr.WaitTimeoutError:
@@ -195,7 +256,8 @@ def main():
     repeating_thread.start()
 
     # Start Tkinter mainloop
-    root.mainloop()
+    # TODO
+    # root.mainloop()
 
     try:
         listen_for_hotword()

@@ -235,6 +235,8 @@ async def chat_internal(user_prompt, system_prompt, image_url, chat_history):
         })
         save_chat_history(chat_history)
         
+        # response is a string in json format
+        print(type(response_message))
         return {"response": response_message}
 
     except Exception as e:
